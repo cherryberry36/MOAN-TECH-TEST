@@ -1,11 +1,10 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const userSchema = require("../models/userModel")
+const userSchema = require("../models/userModel");
 const {
   validateSignupInput,
-   validateLoginInput,
+  validateLoginInput,
 } = require("../utils/validation");
-
 
 //creates a user
 // @route api/users
@@ -44,10 +43,13 @@ const signUp = async (req, res) => {
 
     const token = jwt.sign(payload, process.env.SECRETKEY, { expiresIn: "1h" });
 
+    user.token = token;
+    user.save();
+
     res.status(200).json({
       success: true,
-      token: "Bearer " + token,
-      user: payload
+      token: token,
+      user: payload,
     });
   } catch (err) {
     console.log(err);
@@ -68,7 +70,7 @@ const login = async (req, res) => {
 
   try {
     // check if user exists
-    const existingUser = await userSchema.findOne({ email});
+    const existingUser = await userSchema.findOne({ email });
 
     if (!existingUser)
       return res.status(404).json({
@@ -87,10 +89,14 @@ const login = async (req, res) => {
     const payload = { id: existingUser._id, email: existingUser.email };
 
     const token = jwt.sign(payload, process.env.SECRETKEY, { expiresIn: "1h" });
+
+    existingUser.token = token;
+    existingUser.save();
+
     res.status(200).json({
       success: true,
-      token: "Bearer " + token,
-      user: payload
+      token: token,
+      user: payload,
     });
   } catch (err) {
     console.log(err);
@@ -99,4 +105,4 @@ const login = async (req, res) => {
     });
   }
 };
- module.exports ={signUp, login}
+module.exports = { signUp, login };
