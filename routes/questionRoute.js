@@ -7,12 +7,17 @@ const {
   getQuestionById,
 } = require("../controller/questionController.js");
 
+
+
 questionRoute.post("/questions", logquestion);
 
 questionRoute.post("/voteup", voteUp);
 
 questionRoute.post("/votedown", voteDown);
 
+
+
 questionRoute.get("/:id", getQuestionById);
+
 
 module.exports = questionRoute;

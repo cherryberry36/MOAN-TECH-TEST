@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const { token } = require("morgan");
 const questionSchema = require("../models/questionModel");
 const votingSchema = require("../models/votingModel");
+const isEmpty = require("../utils/is-empty");
 
 const { validatePostInput } = require("../utils/validation");
 
@@ -27,36 +28,41 @@ const logquestion = async (req, res) => {
   );
 };
 
-
-
 const voteUp = async (req, res) => {
   const question = req.query.question_id;
   const user = req.user.id;
   const voteup = true;
 
+  // console.log(req);
+
   // y = user has votedup before
 
-  const y = votingSchema.find({ user: user, question: question, voteup: true });
+  const y = await votingSchema.find({
+    user: user,
+    question: question,
+    voteup: true,
+  });
+
+  if (!isEmpty(y)) {
+    return res.status(400).json({
+          success: false,
+          message: "You have already upvoted",
+        });
+  } 
 
   // z = user has voteddown before and wants to vote up
 
-  const z = votingSchema.find({
+  const z = await votingSchema.find({
     user: user,
     question: question,
     votedown: true,
   });
 
-  if (y) {
-    return res.status(400).json({
-      success: false,
-      message: "You have already upvoted",
-    });
-  }
 
-  if (z) {
-    z.votedown = null;
-    z.voteup = true;
-    z.save();
+  if (!isEmpty(z)) {
+    z[0].votedown = null;
+    z[0].voteup = true;
+    z[0].save();
     return res.status(200).json({
       success: true,
       message: "updated to upvote",
@@ -75,13 +81,7 @@ const voteUp = async (req, res) => {
       question: upVote,
     })
   );
-
-  console.log(req.user.id);
-
-  console.log(req.query.question_id);
 };
-
-
 
 const voteDown = async (req, res) => {
   const question = req.query.question_id;
@@ -90,7 +90,7 @@ const voteDown = async (req, res) => {
 
   // y = user has downvoted before
 
-  const y = votingSchema.find({
+  const y = await votingSchema.find({
     user: user,
     question: question,
     votedown: true,
@@ -98,23 +98,24 @@ const voteDown = async (req, res) => {
 
   // z == user has voted up before and wants to vote down
 
-  const z = votingSchema.find({
+  const z = await votingSchema.find({
     user: user,
     question: question,
     voteup: true,
   });
 
-  if (y) {
+  if (!isEmpty(y)) {
     res.status(400).json({
       success: false,
       message: "you have already downnvoted",
     });
   }
 
-  if (z) {
-    z.votedown = true;
-    z.voteup = null;
-    z.save();
+  if (!isEmpty(z)) {
+    z[0].votedown = true;
+    z[0].voteup = null;
+    z[0].save();
+    // console.log(z.);
     return res.status(200).json({
       success: true,
       message: "updated to downvote",
@@ -134,8 +135,6 @@ const voteDown = async (req, res) => {
     })
   );
 };
-
-
 
 const getQuestionById = async (req, res) => {
   const question = await questionSchema.findById({ _id: req.query.id });
