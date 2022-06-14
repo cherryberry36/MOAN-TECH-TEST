@@ -4,7 +4,6 @@ const { token } = require("morgan");
 const questionSchema = require("../models/questionModel");
 const votingSchema = require("../models/votingModel");
 const isEmpty = require("../utils/is-empty");
-
 const { validatePostInput } = require("../utils/validation");
 
 const logquestion = async (req, res) => {
@@ -33,9 +32,7 @@ const voteUp = async (req, res) => {
   const user = req.user.id;
   const voteup = true;
 
-  // console.log(req);
-
-  // y = user has votedup before
+  
 
   const y = await votingSchema.find({
     user: user,

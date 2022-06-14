@@ -18,7 +18,6 @@ const signUp = async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
-    //check if user has been prevuiously registered
     const existingUser = await userSchema.findOne({ email });
 
     if (existingUser)
@@ -26,7 +25,7 @@ const signUp = async (req, res) => {
         message: "user already exists",
       });
 
-    //hash password
+
     const hashPassword = await bcrypt.hash(password, 12);
 
     const user = await userSchema.create({
@@ -57,8 +56,6 @@ const signUp = async (req, res) => {
   }
 };
 
-// authenticate a user
-// @route api/users/login
 
 const login = async (req, res) => {
   const { errors, isValid } = validateLoginInput(req.body);
@@ -69,22 +66,24 @@ const login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // check if user exists
     const existingUser = await userSchema.findOne({ email });
 
-    if (!existingUser)
+    if (!existingUser){
       return res.status(404).json({
-        message: "user doesn't exist",
+        message: "user doesn't exist, please sign up",
       });
+    }
 
     const isPasswordCorrect = await bcrypt.compare(
       password,
       existingUser.password
     );
-    if (!isPasswordCorrect)
+
+    if (!isPasswordCorrect){
       return res.status(404).json({
         message: "invalid password",
       });
+    }
 
     const payload = { id: existingUser._id, email: existingUser.email };
 
